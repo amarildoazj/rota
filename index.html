@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b0b0b">
+<meta name="theme-color" content="#ffd60a">
 <title>Rota · Sites que levam o cliente até você</title>
 <style>
   :root {
     /* claro: mapa amarelo, tinta preta */
     --bg: #ffd60a; --bg2: #ffe34d; --ink: #111111; --muted: #4d4400;
-    --route: #111111; --on-route: #ffd60a; --pin: #ffd60a; --pin-ink: #111111;
+    --route: #111111; --on-route: #ffffff; --pin: #ffd60a; --pin-ink: #111111;
     --road: rgba(0,0,0,.12); --block: rgba(0,0,0,.07); --water: rgba(0,0,0,.10);
     --card: #fff0a0; --line: rgba(0,0,0,.3);
     --land:#f8f8f6; --blk:#e8eaed; --cream:#fef8e8; --ilha:#ffffff; --park:#cdeac0; --agua:#a9d3f5; --via:#aab9cc; --via-c:#93a5bf; --mestra:#fcd35a; --mestra-c:#e0a82e; --rotac:#ffd60a; --pt:#fcd35a; --pt-c:#e0a82e; --rotah:#ffffff; --rot:#6b665a;
@@ -43,12 +43,12 @@
   button:focus-visible, a:focus-visible { outline: 2px solid var(--route); outline-offset: 3px; }
 
   #tema {
-    position: absolute; left: 92%; top: 5.2%; transform: translate(-50%, -50%);
-    width: 44px; height: 44px; border-radius: 50%; padding: 0;
+    position: absolute; right: 14px; top: 18px;
+    width: 40px; height: 40px; border-radius: 50%; padding: 0;
     border: 1.4px solid var(--ink); background: var(--land); color: var(--ink); opacity: .92;
     display: grid; place-items: center; cursor: pointer; z-index: 5;
   }
-  #tema svg { width: 25px; height: 25px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  #tema svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   #tema .sol { display: none; }
   html[data-theme="dark"] #tema .sol { display: block; }
   html[data-theme="dark"] #tema .lua { display: none; }
