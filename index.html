@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0b">
+<title>Rota · Sites que levam o cliente até você</title>
+<style>
+  :root {
+    /* claro: mapa amarelo, tinta preta */
+    --bg: #ffd60a; --bg2: #ffe34d; --ink: #111111; --muted: #4d4400;
+    --route: #111111; --on-route: #ffd60a; --pin: #ffd60a; --pin-ink: #111111;
+    --road: rgba(0,0,0,.12); --block: rgba(0,0,0,.07); --water: rgba(0,0,0,.10);
+    --card: #fff0a0; --line: rgba(0,0,0,.3);
+    --land:#f8f8f6; --blk:#e8eaed; --cream:#fef8e8; --ilha:#ffffff; --park:#cdeac0; --agua:#a9d3f5; --via:#aab9cc; --via-c:#93a5bf; --mestra:#fcd35a; --mestra-c:#e0a82e; --rotac:#ffd60a; --pt:#fcd35a; --pt-c:#e0a82e; --rotah:#ffffff; --rot:#6b665a;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  html[data-theme="dark"] {
+    /* escuro: mapa preto, rota amarela */
+    --bg: #0b0b0b; --bg2: #1c1a10; --ink: #fff6cc; --muted: #b3a66a;
+    --route: #ffd60a; --on-route: #0b0b0b; --pin: #ffd60a; --pin-ink: #111111;
+    --road: rgba(255,214,10,.10); --block: rgba(255,214,10,.05); --water: rgba(255,214,10,.08);
+    --card: #161509; --line: rgba(255,214,10,.28);
+    --land:#1f2733; --blk:#293342; --cream:#2d3646; --ilha:#2b3547; --park:#243d38; --agua:#16253b; --via:#44526a; --via-c:#2f3b50; --mestra:#7a6a45; --mestra-c:#4a3f28; --rotac:#ffd60a; --pt:#ffd60a; --pt-c:transparent; --rotah:#0b0b0b; --rot:#9ca5b3;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; min-height: 100%; overflow-x: clip; }
+  body {
+    background: radial-gradient(120% 90% at 50% 30%, var(--bg2), var(--bg) 72%);
+    color: var(--ink);
+    font-family: var(--sans);
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+    transition: background .4s, color .4s;
+  }
+  html.aberto { overflow: hidden; }
+  button, a { touch-action: manipulation; font-family: inherit; }
+  button:focus, a:focus { outline: none; }
+  button:focus-visible, a:focus-visible { outline: 2px solid var(--route); outline-offset: 3px; }
+
+  #tema {
+    position: absolute; left: 92%; top: 5.2%; transform: translate(-50%, -50%);
+    width: 44px; height: 44px; border-radius: 50%; padding: 0;
+    border: 1.4px solid var(--ink); background: var(--land); color: var(--ink); opacity: .92;
+    display: grid; place-items: center; cursor: pointer; z-index: 5;
+  }
+  #tema svg { width: 25px; height: 25px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  #tema .sol { display: none; }
+  html[data-theme="dark"] #tema .sol { display: block; }
+  html[data-theme="dark"] #tema .lua { display: none; }
+
+  header { text-align: center; padding-top: 6px; margin-top: auto; }
+  .eyebrow { position: relative; top: -14px; font-size: 12px; letter-spacing: .3em; text-transform: uppercase; color: var(--route); font-weight: 700; }
+  h1 { position: relative; top: -10px; font-size: clamp(46px, 13vw, 80px); line-height: 1; margin: 6px 0 6px; font-weight: 800; letter-spacing: -.02em; }
+  h1 .o { display: inline-block; height: .86em; width: auto; vertical-align: -.02em; margin: 0 .02em; overflow: visible; }
+  h1 .pg { fill: var(--route); }
+  h1 .ph { fill: var(--bg); }
+  h1 i { font-style: normal; color: var(--route); }
+  .sub { position: relative; top: -10px; font-size: clamp(14px, 3.6vw, 17px); color: var(--muted); margin: 0 auto; max-width: 26em; line-height: 1.45; }
+
+  /* mapa */
+  .mapa { position: relative; width: min(100%, 470px, calc((100dvh - 230px) * .714)); min-width: 270px; margin: 0; padding-top: 4px; }
+  svg.m { display: block; width: 100%; overflow: visible; }
+  svg.m * { outline: none; -webkit-user-select: none; user-select: none; }
+  .papel { fill: var(--land); stroke: var(--line); stroke-width: 2; }
+  .quadra { fill: var(--blk); }
+  .parque { fill: var(--park); }
+  .rio { fill: none; stroke: var(--agua); stroke-width: 24; stroke-linecap: round; }
+  .cas { fill: none; stroke: var(--via-c); stroke-width: 14; stroke-linecap: round; }
+  .rua { fill: none; stroke: var(--via); stroke-width: 11; stroke-linecap: round; }
+  .nome-rua { font: 600 9px var(--sans); fill: var(--rot); letter-spacing: .18em; }
+
+  .rota { fill: none; stroke: var(--rotac); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 1 9; opacity: 0; animation: fluxo 1.2s linear infinite; transition: opacity .3s; }
+  @keyframes fluxo { to { stroke-dashoffset: -10; } }
+  .rota.sel { opacity: 1; }
+
+  .pino { cursor: pointer; }
+  .pino .cabeca { transform-box: fill-box; transform-origin: 50% 100%; transition: transform .25s; }
+  .pino:hover .cabeca, .pino.sel .cabeca { transform: translateY(-5px) scale(1.12); }
+  .pino .gota { fill: var(--pin); }
+  .pino.sel .gota { fill: #ffb300; }
+  .pino .ic { color: #111; fill: none; stroke: #111; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  .pino .sombra { fill: #000; opacity: .5; }
+  .pino .cabeca { filter: drop-shadow(0 3px 2.5px rgba(0,0,0,.5)); }
+  .pino text { font: 700 14px var(--sans); fill: var(--ink); stroke: var(--land); stroke-width: 4px; paint-order: stroke; stroke-linejoin: round; text-anchor: middle; pointer-events: none; }
+  .pino .toque { fill: transparent; }
+
+  .cas.anel { stroke: var(--via-c); stroke-width: 17px; }
+  .rua.anel { stroke: var(--via); stroke-width: 14px; }
+  .ilha { fill: var(--ilha); stroke: var(--via-c); stroke-width: 1.5; }
+  .quadra .cr { fill: var(--cream); }
+  .hub .lp { fill: var(--route); }
+  .hub .lh { fill: var(--ilha); }
+  .hub .ld { fill: var(--route); }
+  .hub .lg { font: 800 19px var(--sans); fill: var(--ink); text-anchor: start; letter-spacing: -.01em; }
+
+  .carro .corpo { fill: var(--route); stroke: var(--land); stroke-width: 2; }
+  .carro .vidro { fill: var(--bg); opacity: .85; }
+  .carro .roda { fill: var(--ink); }
+
+  .bussola .bf { fill: var(--land); stroke: var(--ink); stroke-width: 1.4; opacity: .9; }
+  .bussola .pn { fill: #e53935; stroke: none; }
+  .bussola path { fill: var(--ink); stroke: none; stroke-width: 1.6; stroke-linejoin: round; }
+  .bussola text { font: 800 11px var(--sans); fill: var(--ink); text-anchor: middle; }
+
+  .dica { font-size: 13px; color: var(--muted); margin: 12px 0 auto; text-align: center; }
+  footer { padding-top: 16px; text-align: center; font-size: 12px; color: var(--muted); letter-spacing: .06em; }
+  footer b { color: var(--ink); }
+
+  /* cartão da parada */
+  #fundo { position: fixed; inset: 0; background: rgba(0, 0, 0, .25); opacity: 0; pointer-events: none; transition: opacity .3s; z-index: 10; }
+  #cartao {
+    position: fixed; left: 50%; bottom: 0; width: min(100%, 520px);
+    transform: translate(-50%, 105%);
+    background: var(--card); color: var(--ink); border: 1px solid var(--line);
+    border-radius: 26px 26px 0 0; padding: 26px 24px calc(26px + env(safe-area-inset-bottom));
+    transition: transform .4s cubic-bezier(.2, .8, .2, 1); z-index: 11; max-height: 88dvh; overflow: auto;
+  }
+  html.aberto #fundo { opacity: 1; pointer-events: auto; }
+  html.aberto #cartao { transform: translate(-50%, 0); }
+  #cartao .fechar { position: absolute; top: 14px; right: 14px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: transparent; color: var(--ink); font-size: 18px; cursor: pointer; }
+  #cartao .tag { font-size: 12px; letter-spacing: .24em; text-transform: uppercase; color: var(--route); font-weight: 800; }
+  #cartao h2 { font-size: 27px; line-height: 1.15; margin: 8px 40px 8px 0; font-weight: 800; }
+  #cartao p { color: var(--muted); line-height: 1.55; margin: 0 0 12px; font-size: 15px; }
+  #cartao ul { margin: 0 0 20px; padding: 0; list-style: none; }
+  #cartao li { padding: 9px 0 9px 26px; position: relative; font-size: 15px; border-top: 1px dashed var(--line); }
+  #cartao li::before { content: ""; position: absolute; left: 3px; top: 15px; width: 10px; height: 10px; border-radius: 50%; background: var(--route); box-shadow: 0 0 0 3px var(--card), 0 0 0 4px var(--route); }
+  .btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 20px; border-radius: 999px; background: var(--route); color: var(--on-route); font: 700 15px var(--sans); text-decoration: none; }
+  .btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  @media (min-width: 700px) {
+    #cartao { bottom: 20px; border-radius: 26px; transform: translate(-50%, 130%); }
+    html.aberto #cartao { transform: translate(-50%, 0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rota, .hub .anel2 { animation: none; }
+    * { transition-duration: .01s !important; }
+  }
+  html.pausa .rota, html.pausa .hub .anel2 { animation-play-state: paused; }
+</style>
+</head>
+<body>
+
+<script>
+/* ============================================================
+   CONFIGURAÇÃO  (é só mexer aqui)
+   ============================================================ */
+var CONFIG = {
+  nome: 'Rota',
+  frase: 'Sites que levam o seu cliente até você.',
+  dica: 'Toque em uma parada e siga a rota',
+  /* >>> troque pelos SEUS contatos <<< */
+  whatsapp: '5546991286601',
+  instagram: 'https://www.instagram.com/amarildoazj/',
+  /* cada parada do mapa */
+  paradas: [
+    {
+      nome: 'WhatsApp', tag: 'Fale comigo', icone: 'zap',
+      titulo: 'Bora conversar?',
+      texto: 'Conte o que o seu negócio faz e eu desenho o caminho do cliente até você.',
+      itens: [],
+      botao: { texto: 'Chamar no WhatsApp', tipo: 'zap', msg: 'Olá! Vim pelo site da Rota e quero saber mais.' }
+    },
+    {
+      nome: 'Instagram', tag: 'Siga a rota', icone: 'insta',
+      titulo: 'Veja de perto',
+      texto: 'Exemplos de sites e cartões digitais que já saíram do papel.',
+      itens: [],
+      botao: { texto: 'Abrir o Instagram', tipo: 'insta' }
+    },
+    {
+      nome: 'Sites', tag: 'Parada 1', icone: 'site',
+      titulo: 'Sites que levam ao contato',
+      texto: 'Páginas leves, bonitas e feitas para o celular, com botão direto para o seu WhatsApp.',
+      itens: ['Site de apresentação da empresa', 'Página com os seus serviços', 'Botões de WhatsApp e Instagram', 'Mapa e botão “chegar lá”'],
+      botao: { texto: 'Quero um site', tipo: 'zap', msg: 'Olá! Quero um site para o meu negócio.' }
+    },
+    {
+      nome: 'Cartão digital', tag: 'Parada 2', icone: 'cartao',
+      titulo: 'Seu cartão de visita no bolso',
+      texto: 'Um link só com tudo o que o cliente precisa, para colocar na bio e em um QR Code.',
+      itens: ['Foto, nome e profissão', 'Links de contato em um toque', 'QR Code para imprimir', 'Modo claro e escuro'],
+      botao: { texto: 'Quero meu cartão', tipo: 'zap', msg: 'Olá! Quero um cartão digital.' }
+    },
+    {
+      nome: 'Orçamento', tag: 'Destino', icone: 'preco',
+      titulo: 'Como funciona',
+      texto: 'Do primeiro oi até o site no ar, em três paradas.',
+      itens: ['Conversa rápida sobre o seu negócio', 'Proposta com valor e prazo', 'Site no ar, no seu domínio'],
+      botao: { texto: 'Pedir orçamento', tipo: 'zap', msg: 'Olá! Gostaria de um orçamento de site.' }
+    }
+  ]
+};
+</script>
+
+
+<header>
+  <div class="eyebrow">Sites · Links · Cartões</div>
+  <h1 id="nome"></h1>
+  <p class="sub" id="frase"></p>
+</header>
+
+<main class="mapa" aria-label="Mapa de serviços">
+  <button id="tema" type="button" aria-label="Trocar tema">
+  <svg class="lua" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  <svg class="sol" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+</button>
+  <svg class="m" id="m" viewBox="0 0 400 560">
+    <rect class="papel" x="0" y="0" width="400" height="560" rx="22"/>
+    <!-- quadras, parques, rio e ruas (estilo mapa colorido) -->
+    <g class="quadra">
+      <rect class="cr" x="140" y="28" width="55" height="50" rx="3"/><rect class="cr" x="210" y="28" width="60" height="50" rx="3"/><rect class="cr" x="312" y="20" width="68" height="60" rx="3"/>
+      <rect class="cr" x="22" y="195" width="70" height="62" rx="3"/><rect class="cr" x="316" y="190" width="62" height="65" rx="3"/><rect class="cr" x="310" y="290" width="68" height="50" rx="3"/>
+      <rect class="cr" x="140" y="418" width="45" height="50" rx="3"/><rect class="cr" x="215" y="418" width="50" height="50" rx="3"/>
+      <rect x="22" y="300" width="75" height="60" rx="3"/><rect x="22" y="415" width="80" height="45" rx="3"/>
+      <rect x="140" y="92" width="50" height="38" rx="3"/><rect x="212" y="92" width="62" height="38" rx="3"/><rect x="312" y="100" width="66" height="30" rx="3"/>
+    </g>
+    <g class="parque">
+      <rect x="20" y="20" width="88" height="72" rx="10"/><rect x="305" y="450" width="75" height="90" rx="10"/><rect x="22" y="470" width="88" height="70" rx="10"/><rect x="142" y="490" width="38" height="50" rx="10"/>
+    </g>
+    <path class="rio" d="M-10 200 C80 180 120 230 200 212 C280 194 330 240 410 220"/>
+    <g class="bussola" transform="translate(352 516)">
+      <circle r="17" class="bf"/>
+      <path d="M0 -13 L4 0 L0 0 Z" class="pn"/><path d="M0 13 L-4 0 L0 0 Z"/><path d="M13 0 L0 4 L0 0 Z"/><path d="M-13 0 L0 -4 L0 0 Z"/>
+      <text y="-21">N</text><text y="30">S</text><text x="26" y="4">L</text><text x="-26" y="4">O</text>
+    </g>
+
+    <!-- rotas -->
+    <g id="rotas"><g id="gCas"><path class="cas" d="M200 262 L200 150"/><path class="cas" d="M121 300 L162 300"/><path class="cas" d="M238 300 L293 300"/><path class="cas" d="M200 338 L200 522"/><path class="cas" d="M0 470 C120 440 280 500 400 470"/><path class="cas" d="M110 0 L130 560"/><path class="cas" d="M0 410 L400 400"/><path class="cas" d="M0 140 L400 160"/><path class="cas" d="M296 0 L290 560"/></g><g id="gVia"><path class="rua" d="M200 262 L200 150"/><path class="rua" d="M121 300 L162 300"/><path class="rua" d="M238 300 L293 300"/><path class="rua" d="M200 338 L200 522"/><path class="rua" d="M0 470 C120 440 280 500 400 470"/><path class="rua" d="M110 0 L130 560"/><path class="rua" d="M0 410 L400 400"/><path class="rua" d="M0 140 L400 160"/><path class="rua" d="M296 0 L290 560"/></g><g id="gHl"></g></g>
+
+        <text class="nome-rua" x="150" y="150" transform="rotate(2 150 150)">AV. DO LINK</text>
+        <text class="nome-rua" x="162" y="409.6" text-anchor="middle" transform="rotate(-1.4 162 409.6)">RUA DO SITE</text>
+    <!-- hub -->
+    <g class="hub" id="hub">
+      <circle class="ilha" cx="200" cy="300" r="30"/>
+      <g id="hubLogo" aria-label="Rota" transform="translate(200 300) scale(.9) translate(-200 -300) translate(-1 11)">
+        <text x="174.5" y="296" class="lg">R</text>
+        <g transform="translate(186.5 276.5) scale(.42)"><path class="lp" d="M20 51C8 36 2 28 2 19a18 18 0 0 1 36 0c0 9-6 17-18 32z"/><circle class="lh" cx="20" cy="19" r="8"/></g>
+        <text x="202.5" y="296" class="lg">ta</text>
+        <circle class="ld" cx="223.6" cy="293.2" r="3.1"/>
+      </g>
+    </g>
+
+    <!-- paradas -->
+    <g id="pinos"></g>
+
+    <!-- carro -->
+    <g class="carro" id="carro" transform="translate(200 338) scale(.52)">
+      <rect class="corpo" x="-15" y="-8" width="30" height="16" rx="6"/>
+      <rect class="vidro" x="-4" y="-5.5" width="10" height="11" rx="2.5"/>
+      <rect class="roda" x="-11" y="-10" width="7" height="3.6" rx="1.5"/><rect class="roda" x="-11" y="6.4" width="7" height="3.6" rx="1.5"/>
+      <rect class="roda" x="6" y="-10" width="7" height="3.6" rx="1.5"/><rect class="roda" x="6" y="6.4" width="7" height="3.6" rx="1.5"/>
+    </g>
+  </svg>
+</main>
+<p class="dica" id="dica"></p>
+
+<footer><b>Rota</b> · sites, links e cartões digitais</footer>
+
+<div id="fundo"></div>
+<section id="cartao" role="dialog" aria-modal="true" aria-labelledby="ct">
+  <button class="fechar" type="button" id="fechar" aria-label="Fechar">&times;</button>
+  <div class="tag" id="ctag"></div>
+  <h2 id="ct"></h2>
+  <p id="cx"></p>
+  <ul id="cl"></ul>
+  <a class="btn" id="cb" target="_blank" rel="noopener"></a>
+</section>
+
+<script>
+(function () {
+  var H = document.documentElement;
+  var $ = function (id) { return document.getElementById(id); };
+  var NS = 'http://www.w3.org/2000/svg';
+  var reduz = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  document.title = CONFIG.nome + ' · ' + CONFIG.frase.replace(/\.$/, '');
+  var PIN = '<svg class="o" viewBox="0 0 40 52" aria-hidden="true"><path class="pg" d="M20 51C8 36 2 28 2 19a18 18 0 0 1 36 0c0 9-6 17-18 32z"/><circle class="ph" cx="20" cy="19" r="8"/></svg>';
+  var k = CONFIG.nome.toLowerCase().indexOf('o');
+  $('nome').setAttribute('aria-label', CONFIG.nome);
+  $('nome').innerHTML = (k < 0 ? CONFIG.nome : CONFIG.nome.slice(0, k) + PIN + CONFIG.nome.slice(k + 1)) + '<i>.</i>';
+  $('frase').textContent = CONFIG.frase;
+  $('dica').textContent = CONFIG.dica;
+
+  /* posições das paradas no mapa (viewBox 400 × 560) e curvas da rota */
+  var CX = 200, CY = 300, R = 38;
+  /* ruas: a rotatória sai por N, O, L ou S; o carro segue as mesmas ruas do mapa */
+  var POS = [
+    { x: 60,  y: 131,   ex: -90, pts: [[200,262],[200,150],[60,143]] },
+    { x: 340, y: 145,   ex: -90, pts: [[200,262],[200,150],[340,157]] },
+    { x: 60,  y: 396.5, ex: 180, pts: [[162,300],[120.7,300],[124.5,406.9],[60,408.5]] },
+    { x: 340, y: 389.5, ex: 0,   pts: [[238,300],[292.8,300],[291.7,402.7],[340,401.5]] },
+    { x: 200, y: 510,   ex: 90,  pts: [[200,338],[200,522]] }
+  ];
+  var EXIT = POS.map(function (p) { return p.ex * Math.PI / 180; });
+  function arredonda(pts, r) {
+    var d = 'M' + pts[0][0] + ' ' + pts[0][1];
+    for (var k = 1; k < pts.length - 1; k++) {
+      var a = pts[k - 1], b = pts[k], c = pts[k + 1];
+      var l1 = Math.hypot(b[0] - a[0], b[1] - a[1]), l2 = Math.hypot(c[0] - b[0], c[1] - b[1]);
+      var t1 = Math.min(r, l1 / 2), t2 = Math.min(r, l2 / 2);
+      d += ' L' + (b[0] + (a[0] - b[0]) * t1 / l1).toFixed(1) + ' ' + (b[1] + (a[1] - b[1]) * t1 / l1).toFixed(1) +
+           ' Q' + b[0] + ' ' + b[1] + ' ' + (b[0] + (c[0] - b[0]) * t2 / l2).toFixed(1) + ' ' + (b[1] + (c[1] - b[1]) * t2 / l2).toFixed(1);
+    }
+    var z = pts[pts.length - 1];
+    return d + ' L' + z[0] + ' ' + z[1];
+  }
+  POS.forEach(function (p) { p.d = arredonda(p.pts, 12); });
+  var ICONES = {
+    zap: '<circle cx="12" cy="12" r="10.3" fill="none"/><path transform="translate(12 12) scale(.56) translate(-12 -12)" fill="currentColor" stroke="none" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>',
+    insta: '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r=".6"/>',
+    site: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 9.5h18"/><circle cx="6" cy="7.3" r=".4"/>',
+    cartao: '<rect x="3" y="6" width="18" height="12" rx="2.5"/><circle cx="8.5" cy="11" r="1.8"/><path d="M6 15.5c.6-1.6 4-1.6 5 0M14 10h4M14 13h3"/>',
+    preco: '<path d="M4 4h8l8 8-8 8-8-8z"/><circle cx="8.5" cy="8.5" r="1"/>'
+  };
+
+  var rotasG = $('rotas'), pinosG = $('pinos'), carro = $('carro');
+  var paths = [], pinos = [];
+  var gCas = $('gCas'), gVia = $('gVia'), gHl = $('gHl');
+  [['cas anel', gCas], ['rua anel', gVia]].forEach(function (c) {
+    var r = document.createElementNS(NS, 'circle');
+    r.setAttribute('cx', CX); r.setAttribute('cy', CY); r.setAttribute('r', R); r.setAttribute('class', c[0]);
+    c[1].appendChild(r);
+  });
+  CONFIG.paradas.forEach(function (p, i) {
+    var pa = document.createElementNS(NS, 'path');
+    pa.setAttribute('d', POS[i].d); pa.setAttribute('class', 'rota');
+    gHl.appendChild(pa); paths.push(pa);
+
+    var g = document.createElementNS(NS, 'g');
+    g.setAttribute('class', 'pino'); g.setAttribute('role', 'button'); g.setAttribute('tabindex', '0');
+    g.setAttribute('aria-label', p.nome);
+    var x = POS[i].x, y = POS[i].y;
+    g.innerHTML =
+      '<ellipse class="sombra" cx="' + x + '" cy="' + (y + 12) + '" rx="12" ry="4"/>' +
+      '<g class="cabeca">' +
+        '<path class="gota" d="M' + x + ' ' + (y + 12) + ' C' + (x - 28) + ' ' + (y - 8) + ' ' + (x - 24) + ' ' + (y - 40) + ' ' + x + ' ' + (y - 40) + ' C' + (x + 24) + ' ' + (y - 40) + ' ' + (x + 28) + ' ' + (y - 8) + ' ' + x + ' ' + (y + 12) + ' Z"/>' +
+        '<g class="ic" transform="translate(' + (x - 12) + ' ' + (y - 32) + ')">' + ICONES[p.icone] + '</g>' +
+      '</g>' +
+      '<text x="' + x + '" y="' + (y + 32) + '">' + p.nome + '</text>' +
+      '<circle class="toque" cx="' + x + '" cy="' + (y - 12) + '" r="34"/>';
+    pinosG.appendChild(g); pinos.push(g);
+    g.addEventListener('click', function () { vai(i); });
+    g.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); vai(i); }
+    });
+  });
+
+  /* ---------- carro andando pelas ruas ---------- */
+  var cur = -1, token = 0;
+  var loc = { i: -1, a: Math.PI / 2 };         /* na rotatória (ângulo) ou numa rua (i, t) */
+  var T2 = Math.PI * 2;
+  function setCar(x, y, deg) {
+    carro.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') rotate(' + deg.toFixed(1) + ') scale(.52)');
+  }
+  function posRua(path, len, sentido) {
+    var L = path.getTotalLength();
+    len = Math.max(0, Math.min(L, len));
+    var a = path.getPointAtLength(len);
+    var b = path.getPointAtLength(Math.max(0, Math.min(L, len - 1.5 * sentido)));
+    setCar(a.x, a.y, Math.atan2(a.y - b.y, a.x - b.x) * 180 / Math.PI);
+  }
+  function suave(k) { return k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; }
+  function anda(i, de, ate, ms, tk) {
+    return new Promise(function (ok) {
+      var path = paths[i], L = path.getTotalLength(), t0 = null, sentido = ate >= de ? 1 : -1;
+      if (reduz) ms = 120;
+      function f(t) {
+        if (tk !== token) return ok(false);
+        if (t0 === null) t0 = t;
+        var k = Math.min(1, (t - t0) / ms), v = de + (ate - de) * suave(k);
+        loc = { i: i, t: v };
+        posRua(path, L * v, sentido);
+        if (k < 1) requestAnimationFrame(f); else ok(true);
+      }
+      requestAnimationFrame(f);
+    });
+  }
+  function posAnel(a) {
+    setCar(CX + R * Math.cos(a), CY + R * Math.sin(a), Math.atan2(-Math.cos(a), Math.sin(a)) * 180 / Math.PI);
+  }
+  /* roda pela rotatória no sentido anti-horário */
+  function giro(a0, a1, tk) {
+    return new Promise(function (ok) {
+      var m = (((a1 - a0) % T2) + T2) % T2;
+      var delta = m < 1e-3 ? 0 : m - T2;
+      posAnel(a0);
+      if (!delta) { loc = { i: -1, a: a1 }; return ok(true); }
+      var ms = reduz ? 120 : 250 + 700 * Math.abs(delta) / T2, t0 = null;
+      function f(t) {
+        if (tk !== token) return ok(false);
+        if (t0 === null) t0 = t;
+        var k = Math.min(1, (t - t0) / ms), a = a0 + delta * suave(k);
+        loc = { i: -1, a: a };
+        posAnel(a);
+        if (k < 1) requestAnimationFrame(f); else ok(true);
+      }
+      requestAnimationFrame(f);
+    });
+  }
+  function paraAnel(tk) {
+    if (loc.i < 0) return Promise.resolve(true);
+    var i = loc.i, t = loc.t;
+    return anda(i, t, 0, Math.max(150, 650 * t), tk).then(function (ok) {
+      if (ok) loc = { i: -1, a: EXIT[i] };
+      return ok;
+    });
+  }
+  function marca(i) {
+    paths.forEach(function (p, k) { p.classList.toggle('sel', k === i); });
+    pinos.forEach(function (p, k) { p.classList.toggle('sel', k === i); });
+  }
+
+  function cartao(i) {
+    var p = CONFIG.paradas[i];
+    $('ctag').textContent = p.tag;
+    $('ct').textContent = p.titulo;
+    $('cx').textContent = p.texto;
+    $('cl').innerHTML = '';
+    p.itens.forEach(function (t) { var li = document.createElement('li'); li.textContent = t; $('cl').appendChild(li); });
+    var b = p.botao, a = $('cb');
+    a.href = b.tipo === 'insta' ? CONFIG.instagram : 'https://wa.me/' + CONFIG.whatsapp + '?text=' + encodeURIComponent(b.msg || '');
+    a.innerHTML = '<svg viewBox="0 0 24 24">' + ICONES[b.tipo === 'insta' ? 'insta' : 'zap'] + '</svg><span></span>';
+    a.querySelector('span').textContent = b.texto;
+  }
+
+  function vai(i) {
+    if (i === cur && H.classList.contains('aberto')) return;
+    var tk = ++token;
+    cur = i;
+    marca(i);
+    cartao(i);
+    H.classList.add('aberto');           /* o cartão abre na hora; o carrinho segue viajando */
+    var ate = (loc.i === i)
+      ? Promise.resolve(true)
+      : paraAnel(tk).then(function (ok) { return ok ? giro(loc.a, EXIT[i], tk) : false; });
+    ate.then(function (ok) { return ok ? anda(i, loc.i === i ? loc.t : 0, 1, 1100, tk) : false; });
+  }
+  function volta() {
+    H.classList.remove('aberto');
+    if (cur < 0 && loc.i < 0) return;
+    var tk = ++token;
+    cur = -1;
+    marca(-1);
+    paraAnel(tk);
+  }
+  $('fechar').addEventListener('click', volta);
+  $('fundo').addEventListener('click', volta);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') volta(); });
+
+  /* tema claro / escuro */
+  function aplicaTema(t) {
+    H.setAttribute('data-theme', t);
+    var m = document.querySelector('meta[name=theme-color]');
+    if (m) m.setAttribute('content', t === 'dark' ? '#0b0b0b' : '#ffd60a');
+  }
+  try {
+    var salvo = localStorage.getItem('rota-tema');
+    if (salvo === 'light' || salvo === 'dark') aplicaTema(salvo);
+  } catch (e) {}
+  $('tema').addEventListener('click', function () {
+    var t = H.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    aplicaTema(t);
+    try { localStorage.setItem('rota-tema', t); } catch (e) {}
+  });
+
+  document.addEventListener('visibilitychange', function () { H.classList.toggle('pausa', document.hidden); });
+})();
+</script>
+</body>
+</html>
