@@ -87,6 +87,7 @@
   .pino .sombra { fill: #000; opacity: .5; }
   .pino .cabeca { filter: drop-shadow(0 3px 2.5px rgba(0,0,0,.5)); }
   .pino text { font: 700 14px var(--sans); fill: var(--ink); stroke: var(--land); stroke-width: 4px; paint-order: stroke; stroke-linejoin: round; text-anchor: middle; pointer-events: none; }
+  .pino.sc text { stroke: none; }
   .pino .toque { fill: transparent; }
 
   .cas.anel { stroke: var(--via-c); stroke-width: 17px; }
@@ -345,7 +346,7 @@ var CONFIG = {
     gHl.appendChild(pa); paths.push(pa);
 
     var g = document.createElementNS(NS, 'g');
-    g.setAttribute('class', 'pino'); g.setAttribute('role', 'button'); g.setAttribute('tabindex', '0');
+    g.setAttribute('class', 'pino' + (['Sites', 'Orçamento', 'Cartão digital', 'Clientes'].indexOf(p.nome) >= 0 ? ' sc' : '')); g.setAttribute('role', 'button'); g.setAttribute('tabindex', '0');
     g.setAttribute('aria-label', p.nome);
     var x = POS[i].x, y = POS[i].y;
     g.innerHTML =
