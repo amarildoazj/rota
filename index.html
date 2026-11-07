@@ -129,6 +129,7 @@
   #cartao ul { margin: 0 0 20px; padding: 0; list-style: none; }
   #cartao li { padding: 9px 0 9px 26px; position: relative; font-size: 15px; border-top: 1px dashed var(--line); }
   #cartao li::before { content: ""; position: absolute; left: 3px; top: 15px; width: 10px; height: 10px; border-radius: 50%; background: var(--route); box-shadow: 0 0 0 3px var(--card), 0 0 0 4px var(--route); }
+  #cartao li a { color: var(--ink); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
   .btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 20px; border-radius: 999px; background: var(--route); color: var(--on-route); font: 700 15px var(--sans); text-decoration: none; }
   .btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
   @media (min-width: 700px) {
@@ -192,6 +193,16 @@ var CONFIG = {
       texto: 'Do primeiro oi até o site no ar, em três paradas.',
       itens: ['Conversa rápida sobre o seu negócio', 'Proposta com valor e prazo', 'Site no ar, no seu domínio'],
       botao: { texto: 'Pedir orçamento', tipo: 'zap', msg: 'Olá! Gostaria de um orçamento de site.' }
+    },
+    {
+      nome: 'Clientes', tag: 'Exemplos', icone: 'pessoas',
+      titulo: 'Quem já tem o seu cantinho',
+      texto: 'Exemplos de sites e cartões digitais feitos pela Rota. Toque para abrir:',
+      itens: [
+        { t: 'Isadora Gagliotto Galvan', url: 'https://amarildoazj.github.io/isaggalvan/' },
+        { t: 'Silvia Zuffo', url: 'https://amarildoazj.github.io/silviazuffo/' }
+      ],
+      botao: { texto: 'Quero um igual', tipo: 'zap', msg: 'Olá! Vi os exemplos no site da Rota e quero um igual para o meu negócio.' }
     }
   ]
 };
@@ -230,7 +241,7 @@ var CONFIG = {
     </g>
 
     <!-- rotas -->
-    <g id="rotas"><g id="gCas"><path class="cas" d="M200 262 L200 150"/><path class="cas" d="M121 300 L162 300"/><path class="cas" d="M238 300 L293 300"/><path class="cas" d="M200 338 L200 522"/><path class="cas" d="M0 470 C120 440 280 500 400 470"/><path class="cas" d="M110 0 L130 560"/><path class="cas" d="M0 410 L400 400"/><path class="cas" d="M0 140 L400 160"/><path class="cas" d="M296 0 L290 560"/></g><g id="gVia"><path class="rua" d="M200 262 L200 150"/><path class="rua" d="M121 300 L162 300"/><path class="rua" d="M238 300 L293 300"/><path class="rua" d="M200 338 L200 522"/><path class="rua" d="M0 470 C120 440 280 500 400 470"/><path class="rua" d="M110 0 L130 560"/><path class="rua" d="M0 410 L400 400"/><path class="rua" d="M0 140 L400 160"/><path class="rua" d="M296 0 L290 560"/></g><g id="gHl"></g></g>
+    <g id="rotas"><g id="gCas"><path class="cas" d="M200 262 L200 72"/><path class="cas" d="M121 300 L162 300"/><path class="cas" d="M238 300 L293 300"/><path class="cas" d="M200 338 L200 522"/><path class="cas" d="M0 470 C120 440 280 500 400 470"/><path class="cas" d="M110 0 L130 560"/><path class="cas" d="M0 410 L400 400"/><path class="cas" d="M0 140 L400 160"/><path class="cas" d="M296 0 L290 560"/></g><g id="gVia"><path class="rua" d="M200 262 L200 72"/><path class="rua" d="M121 300 L162 300"/><path class="rua" d="M238 300 L293 300"/><path class="rua" d="M200 338 L200 522"/><path class="rua" d="M0 470 C120 440 280 500 400 470"/><path class="rua" d="M110 0 L130 560"/><path class="rua" d="M0 410 L400 400"/><path class="rua" d="M0 140 L400 160"/><path class="rua" d="M296 0 L290 560"/></g><g id="gHl"></g></g>
 
         <text class="nome-rua" x="150" y="150" transform="rotate(2 150 150)">AV. DO LINK</text>
         <text class="nome-rua" x="162" y="409.6" text-anchor="middle" transform="rotate(-1.4 162 409.6)">RUA DO SITE</text>
@@ -294,7 +305,8 @@ var CONFIG = {
     { x: 340, y: 145,   ex: -90, pts: [[200,262],[200,150],[340,157]] },
     { x: 60,  y: 396.5, ex: 180, pts: [[162,300],[120.7,300],[124.5,406.9],[60,408.5]] },
     { x: 340, y: 389.5, ex: 0,   pts: [[238,300],[292.8,300],[291.7,402.7],[340,401.5]] },
-    { x: 200, y: 510,   ex: 90,  pts: [[200,338],[200,522]] }
+    { x: 200, y: 510,   ex: 90,  pts: [[200,338],[200,522]] },
+    { x: 200, y: 60,    ex: -90, pts: [[200,262],[200,72]] }
   ];
   var EXIT = POS.map(function (p) { return p.ex * Math.PI / 180; });
   function arredonda(pts, r) {
@@ -315,6 +327,7 @@ var CONFIG = {
     insta: '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r=".6"/>',
     site: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 9.5h18"/><circle cx="6" cy="7.3" r=".4"/>',
     cartao: '<rect x="3" y="6" width="18" height="12" rx="2.5"/><circle cx="8.5" cy="11" r="1.8"/><path d="M6 15.5c.6-1.6 4-1.6 5 0M14 10h4M14 13h3"/>',
+    pessoas: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.6 2.7-6 6-6s6 2.4 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2c3 0 5 2 5 5.3"/>',
     preco: '<path d="M4 4h8l8 8-8 8-8-8z"/><circle cx="8.5" cy="8.5" r="1"/>'
   };
 
@@ -421,7 +434,16 @@ var CONFIG = {
     $('ct').textContent = p.titulo;
     $('cx').textContent = p.texto;
     $('cl').innerHTML = '';
-    p.itens.forEach(function (t) { var li = document.createElement('li'); li.textContent = t; $('cl').appendChild(li); });
+    p.itens.forEach(function (t) {
+      var li = document.createElement('li');
+      if (typeof t === 'string') li.textContent = t;
+      else {
+        var l = document.createElement('a');
+        l.href = t.url; l.target = '_blank'; l.rel = 'noopener'; l.textContent = t.t + ' ↗';
+        li.appendChild(l);
+      }
+      $('cl').appendChild(li);
+    });
     var b = p.botao, a = $('cb');
     a.href = b.tipo === 'insta' ? CONFIG.instagram : 'https://wa.me/' + CONFIG.whatsapp + '?text=' + encodeURIComponent(b.msg || '');
     a.innerHTML = '<svg viewBox="0 0 24 24">' + ICONES[b.tipo === 'insta' ? 'insta' : 'zap'] + '</svg><span></span>';
